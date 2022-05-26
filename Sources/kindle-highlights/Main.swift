@@ -3,6 +3,7 @@ import Flow
 import Foundation
 import Parsing
 import Baggins
+import AppKit
 
 @main
 struct App: ParsableCommand {
@@ -11,6 +12,9 @@ struct App: ParsableCommand {
 
     @Option(name: [.customLong("from"), .short])
     var fromDate = Date.distantPast
+    
+    @Flag(name: [.customLong("cp")])
+    var useClipboard = false
 
     func run() throws {
         var contents = ""
@@ -34,10 +38,23 @@ struct App: ParsableCommand {
             throw SimpleError("No new highlights.")
         }
 
+        var text = ""
         for h in highlights {
-            print("- \(h.text)")
+            print("- \(h.text)", to: &text)
         }
-        print("\n> \(lastDate)")
+        print("\n> \(lastDate)", to: &text)
+        
+        if useClipboard {
+            let clipboard = NSPasteboard.general
+            clipboard.declareTypes([.string], owner: nil)
+            if clipboard.setString(text, forType: .string) {
+                print("Copied to clipboard.")
+            } else {
+                print("Failed to copy to clipboard.")
+            }
+        } else {
+            print(text)
+        }
     }
 }
 
