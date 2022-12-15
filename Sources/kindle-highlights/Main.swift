@@ -15,6 +15,9 @@ struct App: ParsableCommand {
     
     @Flag(name: [.customLong("cp")])
     var useClipboard = false
+    
+    @Flag
+    var formatAdmonitions = false
 
     func run() throws {
         var contents = ""
@@ -39,9 +42,21 @@ struct App: ParsableCommand {
         }
 
         var text = ""
+        
         for h in highlights {
-            print("- \(h.text)", to: &text)
+            if formatAdmonitions {
+                print("""
+                    > [!summary] \(h.metadata.page.map { "Page \($0)" } ?? "") | Location \(h.metadata.location.0) \(h.metadata.location.1.map { "-\($0)" } ?? "")
+                    > \(h.text)
+                    
+                    
+                    """, to: &text)
+            } else {
+                print("- \(h.text)", to: &text)
+            }
         }
+        
+
         print("\n> \(lastDate)", to: &text)
         
         if useClipboard {
