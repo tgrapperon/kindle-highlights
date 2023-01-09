@@ -1,27 +1,60 @@
+import Baggins
 import Foundation
 import Parsing
-import Baggins
 
-struct Highlight {
-    let metadata: Metadata
-    let text: String
-}
-
-struct Metadata {
-    let page: Int?
-    let location: (Int, Int?)
-    let date: Date
-}
+/* - Your Highlight on page 266 | location 4071-4072 | Added on Thursday, 19 April 2018 10:44:34
+ */
 
 private let newline = "\r\n"
 
-// - Your Highlight on page 266 | location 4071-4072 | Added on Thursday, 19 April 2018 10:44:34
-private let metadataDateFormatter = DateFormatter().then {
+/// Thursday, 19 April 2018 10:44:34
+let metadataDateFormatter = DateFormatter().then {
     $0.dateFormat = "EEEE, d MMM yyyy HH:mm:ss"
     $0.locale = Locale(identifier: "en_US")
 }
 
-private let location = Parse {
+// MARK: - Book title and author line
+
+/// Tress of the Emerald Sea (Brandon Sanderson)
+/// The Final Empire: 1 (MISTBORN) (Sanderson, Brandon)
+let bookAndAuthorParser: some Parser<Substring, Book> = Parse {
+    PrefixUpTo("(")
+
+    Many {
+        parenthesisContentParser
+    } separator: {
+        Whitespace(.horizontal)
+    }
+}
+.map { (first: Substring, rest: [Substring]) in
+    var rest = rest
+    guard rest.isEmpty == false else {
+        fatalError("Expected at least one text in parenthesis for the author.")
+    }
+    let author = String(rest.removeLast())
+    var title = String(first)
+    if rest.isEmpty == false {
+        title += rest
+            .map { "(\($0))" }
+            .joined(separator: " ")
+    }
+    return Book(
+        title: title.trimmingCharacters(in: .whitespaces),
+        author: author
+    )
+}
+
+/// (something)
+/// returns: something
+let parenthesisContentParser = Parse {
+    "("
+    PrefixUpTo(")")
+    ")"
+}
+
+// MARK: - Metadata line
+
+private let locationParser = Parse(Location.init(start:end:)) {
     Int.parser()
     Optionally {
         "-"
@@ -29,23 +62,23 @@ private let location = Parse {
     }
 }
 
-// location 4071-4072
+/// location 4071-4072
 private let locationPart = Parse {
     "location "
-    location
+    locationParser
 }
 
-// Your Highlight at location 153-154
+/// Your Highlight at location 153-154
 private let locationHighlight = Parse {
     OneOf {
         "Your Highlight at location "
         "Your Note at location "
     }
-    location
+    locationParser
 }
 
-// Your Highlight on page 266
-private let pageHighlight = Parse {
+/// Your Highlight on page 266
+private let pageHighlight = Parse(Page.init(number:)) {
     OneOf {
         "Your Highlight on page "
         "Your Note on page "
@@ -53,8 +86,7 @@ private let pageHighlight = Parse {
     Int.parser()
 }
 
-
-// Added on Thursday, 19 April 2018 10:44:34
+/// Added on Thursday, 19 April 2018 10:44:34
 private let addedDate = Parse {
     "Added on "
     Parsers.prefixUpToNewline
@@ -63,7 +95,7 @@ private let addedDate = Parse {
         }
 }
 
-private let metadata = Parse {
+let metadataParser = Parse(Metadata.init(page:location:date:)) {
     "- "
     OneOf {
         Parse {
@@ -71,37 +103,47 @@ private let metadata = Parse {
             " | "
             locationPart
         }
-        .map { (page, location) -> (Int?, (Int, Int?)) in
+        .map { page, location -> (Page?, Location) in
             (page, location)
         }
-        
+
         locationHighlight
-            .map { location -> (Int?, (Int, Int?)) in
+            .map { location -> (Page?, Location) in
                 (nil, location)
             }
     }
     " | "
     addedDate
-}.map { (args: ((Int?, (Int, Int?)), Date)) in
-    Metadata(page: args.0.0, location: args.0.1, date: args.1)
 }
 
-private let highlight = Parse(Highlight.init(metadata:text:)) {
-    Skip { PrefixThrough(newline) } // title (author)
-    metadata
-    Whitespace(.vertical)
+// MARK: - Content
 
-    PrefixUpTo("==========")
+let contentParser: some Parser<Substring, String> = Parse {
+    PrefixUpTo(highlightSeparator)
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-
-    "=========="
 }
 
-let myClippingsParser = Many {
-    highlight
+// MARK: - Full Highlight
+
+let highlightParser: some Parser<Substring, Highlight> = Parse({ Highlight(book: $0, metadata: $1, text: $2) }) {
+    bookAndAuthorParser
+    Whitespace(.vertical)
+    metadataParser
+    Whitespace(.vertical)
+    contentParser
+}
+
+private let highlightSeparator = "=========="
+
+// MARK: - My Clippings File, multiple highlights
+
+let myClippingsParser: some Parser<Substring, [Highlight]> = Many {
+    highlightParser
 } separator: {
-    newline
+    highlightSeparator
+    Whitespace(1, .vertical)
 } terminator: {
+    highlightSeparator
     Whitespace()
     End()
 }
