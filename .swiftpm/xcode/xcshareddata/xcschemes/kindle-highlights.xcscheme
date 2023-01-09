@@ -79,11 +79,11 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "/Users/alex/Developer/kindle-highlights/short.txt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/alex/Developer/kindle-highlights/My\ Clippings.txt"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

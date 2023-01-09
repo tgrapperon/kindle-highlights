@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "baggins",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/alexito4/Baggins.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "d66135fb07c12055599952ddf0e94a16978ad534"
+      }
+    },
+    {
       "identity" : "flow",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/alexito4/Flow.git",
@@ -23,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-case-paths",
       "state" : {
-        "revision" : "ce9c0d897db8a840c39de64caaa9b60119cf4be8",
-        "version" : "0.8.1"
+        "revision" : "c3a42e8d1a76ff557cf565ed6d8b0aee0e6e75af",
+        "version" : "0.11.0"
       }
     },
     {
