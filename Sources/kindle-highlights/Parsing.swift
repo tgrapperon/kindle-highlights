@@ -16,31 +16,33 @@ let metadataDateFormatter = DateFormatter().then {
 
 /// Tress of the Emerald Sea (Brandon Sanderson)
 /// The Final Empire: 1 (MISTBORN) (Sanderson, Brandon)
-let bookAndAuthorParser: some Parser<Substring, Book> = Parse {
-    PrefixUpTo("(")
+var bookAndAuthorParser: some Parser<Substring, Book> {
+  Parse {
+      PrefixUpTo("(")
 
-    Many {
-        parenthesisContentParser
-    } separator: {
-        Whitespace(.horizontal)
-    }
-}
-.map { (first: Substring, rest: [Substring]) in
-    var rest = rest
-    guard rest.isEmpty == false else {
-        fatalError("Expected at least one text in parenthesis for the author.")
-    }
-    let author = String(rest.removeLast())
-    var title = String(first)
-    if rest.isEmpty == false {
-        title += rest
-            .map { "(\($0))" }
-            .joined(separator: " ")
-    }
-    return Book(
-        title: title.trimmingCharacters(in: .whitespaces),
-        author: author
-    )
+      Many {
+          parenthesisContentParser
+      } separator: {
+          Whitespace(.horizontal)
+      }
+  }
+  .map { (first: Substring, rest: [Substring]) in
+      var rest = rest
+      guard rest.isEmpty == false else {
+          fatalError("Expected at least one text in parenthesis for the author.")
+      }
+      let author = String(rest.removeLast())
+      var title = String(first)
+      if rest.isEmpty == false {
+          title += rest
+              .map { "(\($0))" }
+              .joined(separator: " ")
+      }
+      return Book(
+          title: title.trimmingCharacters(in: .whitespaces),
+          author: author
+      )
+  }
 }
 
 /// (something)
@@ -124,25 +126,28 @@ let contentParser: some Parser<Substring, String> = Parse {
 
 // MARK: - Full Highlight
 
-let highlightParser: some Parser<Substring, Highlight> = Parse({ Highlight(book: $0, metadata: $1, text: $2) }) {
-    bookAndAuthorParser
-    Whitespace(.vertical)
-    metadataParser
-    Whitespace(.vertical)
-    contentParser
+var highlightParser: some Parser<Substring, Highlight> {
+  Parse({ Highlight(book: $0, metadata: $1, text: $2) }) {
+      bookAndAuthorParser
+      Whitespace(.vertical)
+      metadataParser
+      Whitespace(.vertical)
+      contentParser
+  }
 }
-
 private let highlightSeparator = "=========="
 
 // MARK: - My Clippings File, multiple highlights
 
-let myClippingsParser: some Parser<Substring, [Highlight]> = Many {
-    highlightParser
-} separator: {
-    highlightSeparator
-    Whitespace(1, .vertical)
-} terminator: {
-    highlightSeparator
-    Whitespace()
-    End()
+var myClippingsParser: some Parser<Substring, [Highlight]> {
+  Many {
+      highlightParser
+  } separator: {
+      highlightSeparator
+      Whitespace(1, .vertical)
+  } terminator: {
+      highlightSeparator
+      Whitespace()
+      End()
+  }
 }
