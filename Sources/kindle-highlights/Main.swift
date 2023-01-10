@@ -29,10 +29,10 @@ struct App: ParsableCommand {
             throw SimpleError("No highlights found.")
         }
 
-        let lastDate: String = dateFormatter.string(from: output.last!.metadata.date)
+        let lastDate: String = ""//dateFormatter.string(from: output.last!.metadata.date)
 
         let highlights = output
-            .filter { $0.metadata.date > fromDate }
+//            .filter { $0.metadata.date > fromDate }
 
         guard !highlights.isEmpty else {
             throw SimpleError("No new highlights.")

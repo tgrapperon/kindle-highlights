@@ -14,22 +14,12 @@ struct Book: Equatable {
 struct Metadata: Equatable {
     let page: Page?
     let location: Location
-    let date: Date
+//    let date: Date
+    let date: String?
 }
 
-@dynamicMemberLookup
 struct Page: Equatable {
     let number: Int
-
-    subscript<T>(dynamicMember keyPath: KeyPath<Int, T>) -> T {
-        number[keyPath: keyPath]
-    }
-}
-
-extension Page: ExpressibleByIntegerLiteral {
-    init(integerLiteral value: IntegerLiteralType) {
-        self.init(number: value)
-    }
 }
 
 struct Location: Equatable {
