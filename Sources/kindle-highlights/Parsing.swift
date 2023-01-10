@@ -5,7 +5,6 @@ import Parsing
 /* - Your Highlight on page 266 | location 4071-4072 | Added on Thursday, 19 April 2018 10:44:34
  */
 
-private let newline = "\r\n"
 
 /// Thursday, 19 April 2018 10:44:34
 let metadataDateFormatter = DateFormatter().then {
@@ -46,7 +45,7 @@ let bookAndAuthorParser: some Parser<Substring, Book> = Parse {
 
 /// (something)
 /// returns: something
-let parenthesisContentParser = Parse {
+private let parenthesisContentParser = Parse {
     "("
     PrefixUpTo(")")
     ")"
